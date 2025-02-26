@@ -1,0 +1,8 @@
+This directory would normally contain sprite images for:
+- player.png
+- jiraMonster.png
+- zombieManager.png
+- meeting.png
+- arrow.png
+
+The game is currently configured to use colored rectangles as placeholders instead of actual images. 
