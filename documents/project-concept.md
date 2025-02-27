@@ -36,11 +36,23 @@ GAMEPLAY MECHANICS:
 
 TECHNICAL IMPLEMENTATION:
 -----------------------
+- Modular architecture using ES6 modules for better organization and maintainability
+- Core modules:
+  * GameEngine.js: Main game loop and state management
+  * AssetLoader.js: Handles loading of sprites, backgrounds, and audio
+  * EntityManager.js: Manages game entities and their interactions
+  * Renderer.js: Handles all rendering operations
+  * UIManager.js: Manages UI elements like debug overlay and mute button
+- Entity classes:
+  * Player.js: Player character with movement and attack capabilities
+  * JiraMonster.js: Enemy that moves horizontally
+  * ZombieManager.js: Enemy that moves erratically and occasionally jumps
+  * Meeting.js: Enemy that moves slowly but can float upward
+  * Arrow.js: Player's weapon that moves horizontally
 - Canvas-based game engine with vanilla JavaScript (no external libraries)
 - Responsive design that works on desktop/mobile
-- Persistent save state using localStorage
+- Debug overlay for development and troubleshooting
 - Simple code editor for the coding challenges
-- Achievement system tied to real portfolio items
 
 ART STYLE:
 ---------
