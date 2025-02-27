@@ -21,7 +21,8 @@ class CareerQuest {
     this.debugInfo = {
       backgroundLoaded: false,
       soundtrackLoaded: false,
-      errors: []
+      errors: [],
+      sprites: {}
     };
     
     // Create debug overlay
@@ -76,31 +77,91 @@ class CareerQuest {
   }
   
   async loadSprites() {
+    console.log('Starting sprite loading...');
     const spriteNames = ['player', 'jiraMonster', 'zombieManager', 'meeting', 'arrow'];
     const loadPromises = spriteNames.map(name => {
       return new Promise((resolve) => {
-        // For the prototype, we'll use placeholder colored rectangles
-        this.sprites[name] = { width: 32, height: 48, placeholder: true };
-        resolve();
-        
-        // When you have actual sprites, uncomment this code:
-        /*
-        const img = new Image();
-        img.onload = () => {
-          this.sprites[name] = img;
-          resolve();
-        };
-        img.onerror = () => {
-          // Fallback to placeholder on error
+        // Special handling for jiraMonster - load actual sprite
+        if (name === 'jiraMonster') {
+          const img = new Image();
+          
+          img.onload = () => {
+            console.log(`${name} sprite loaded successfully:`, {
+              width: img.width,
+              height: img.height,
+              src: img.src,
+              complete: img.complete,
+              time: new Date().toISOString()
+            });
+            
+            // Store the sprite
+            this.sprites[name] = img;
+            
+            // Add to debug info
+            if (!this.debugInfo.sprites) {
+              this.debugInfo.sprites = {};
+            }
+            this.debugInfo.sprites[name] = {
+              loaded: true,
+              width: img.width,
+              height: img.height,
+              src: img.src
+            };
+            
+            resolve();
+          };
+          
+          img.onerror = (err) => {
+            console.error(`${name} sprite load failed:`, {
+              src: img.src,
+              error: err,
+              time: new Date().toISOString()
+            });
+            
+            // Add error to debug info
+            this.debugInfo.errors.push(`${name} sprite load failed: ${img.src}`);
+            
+            // Try with a different path as fallback
+            if (img.src.includes('assets/sprites/jiraMonster.png')) {
+              console.log('Trying with assets/jiraMonster.png...');
+              img.src = 'assets/jiraMonster.png';
+            } else if (img.src.includes('assets/jiraMonster.png')) {
+              console.log('Trying with assets/@jiraMonster.png...');
+              img.src = 'assets/@jiraMonster.png';
+            } else if (img.src.includes('assets/@jiraMonster.png')) {
+              console.log('Trying with root path...');
+              img.src = 'jiraMonster.png';
+            } else {
+              // All attempts failed, use placeholder
+              console.log(`Using placeholder for ${name}`);
+              this.sprites[name] = { width: 32, height: 48, placeholder: true };
+              
+              // Add to debug info
+              if (!this.debugInfo.sprites) {
+                this.debugInfo.sprites = {};
+              }
+              this.debugInfo.sprites[name] = {
+                loaded: false,
+                placeholder: true
+              };
+              
+              resolve();
+            }
+          };
+          
+          // First attempt - try the correct path
+          console.log(`Attempting to load ${name} sprite from:`, `assets/sprites/jiraMonster.png`);
+          img.src = `assets/sprites/jiraMonster.png`;
+        } else {
+          // For other sprites, we'll use placeholder colored rectangles
           this.sprites[name] = { width: 32, height: 48, placeholder: true };
           resolve();
-        };
-        img.src = `assets/sprites/${name}.png`;
-        */
+        }
       });
     });
     
     await Promise.all(loadPromises);
+    console.log('All sprites loaded (or placeholders created)');
   }
   
   async loadBackgrounds() {
@@ -514,13 +575,46 @@ class CareerQuest {
   }
   
   renderEntity(entity) {
-    if (entity.sprite && entity.sprite.placeholder) {
-      // Render placeholder
+    try {
+      if (entity.sprite && entity.sprite.placeholder) {
+        // Render placeholder
+        this.ctx.fillStyle = this.getColorForEntityType(entity.type);
+        this.ctx.fillRect(entity.x, entity.y, entity.width, entity.height);
+      } else {
+        // For jiraMonster, add extra debug info
+        if (entity.type === 'jiraMonster') {
+          console.log('Rendering jiraMonster sprite:', {
+            x: entity.x,
+            y: entity.y,
+            width: entity.width,
+            height: entity.height,
+            spriteComplete: entity.sprite.complete,
+            spriteWidth: entity.sprite.width,
+            spriteHeight: entity.sprite.height
+          });
+        }
+        
+        // Render actual sprite
+        this.ctx.drawImage(entity.sprite, entity.x, entity.y, entity.width, entity.height);
+      }
+      
+      // Draw entity bounding box for debugging
+      if (this.debugInfo && this.debugInfo.showBoundingBoxes) {
+        this.ctx.strokeStyle = '#ff0000';
+        this.ctx.lineWidth = 1;
+        this.ctx.strokeRect(entity.x, entity.y, entity.width, entity.height);
+      }
+    } catch (err) {
+      console.error(`Error rendering ${entity.type}:`, err);
+      
+      // Fallback to colored rectangle
       this.ctx.fillStyle = this.getColorForEntityType(entity.type);
       this.ctx.fillRect(entity.x, entity.y, entity.width, entity.height);
-    } else {
-      // Render actual sprite
-      this.ctx.drawImage(entity.sprite, entity.x, entity.y, entity.width, entity.height);
+      
+      // Add error to debug info
+      if (this.debugInfo) {
+        this.debugInfo.errors.push(`Error rendering ${entity.type}: ${err.message}`);
+      }
     }
   }
   
@@ -867,6 +961,17 @@ class CareerQuest {
     html += `Soundtrack Loaded: ${this.debugInfo.soundtrackLoaded}<br>`;
     html += `Game State: ${this.gameState}<br>`;
     
+    // Add sprite loading information
+    html += `<strong>Sprites:</strong><br>`;
+    for (const spriteName in this.sprites) {
+      const sprite = this.sprites[spriteName];
+      if (sprite) {
+        const isPlaceholder = sprite.placeholder ? 'Placeholder' : 'Image';
+        const dimensions = `${sprite.width}x${sprite.height}`;
+        html += `- ${spriteName}: ${isPlaceholder} (${dimensions})<br>`;
+      }
+    }
+    
     if (this.debugInfo.lastRenderAttempt) {
       html += `Last Render: ${this.debugInfo.lastRenderAttempt}<br>`;
       html += `Render Success: ${this.debugInfo.lastRenderSuccess}<br>`;
@@ -1062,6 +1167,37 @@ class JiraMonster extends Entity {
     super(x, y, sprite, 'jiraMonster');
     this.speed = 0.05; // pixels per millisecond
     this.health = 1;
+    
+    // Update dimensions to match the sprite if it's not a placeholder
+    if (sprite && !sprite.placeholder) {
+      console.log('JiraMonster using actual sprite with dimensions:', {
+        width: sprite.width,
+        height: sprite.height,
+        src: sprite.src
+      });
+      
+      // Set dimensions based on sprite
+      this.width = sprite.width;
+      this.height = sprite.height;
+      
+      // Scale down if too large
+      const maxSize = 64;
+      if (this.width > maxSize || this.height > maxSize) {
+        const scale = Math.min(maxSize / this.width, maxSize / this.height);
+        this.width = Math.floor(this.width * scale);
+        this.height = Math.floor(this.height * scale);
+        console.log('JiraMonster sprite scaled down to:', {
+          width: this.width,
+          height: this.height,
+          scale: scale
+        });
+      }
+    } else {
+      console.log('JiraMonster using placeholder with dimensions:', {
+        width: this.width,
+        height: this.height
+      });
+    }
   }
   
   update(deltaTime, entities) {
