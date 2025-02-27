@@ -20,6 +20,49 @@ your-website/
 │   └── music/            # Background music
 ```
 
+## Sprite Implementation
+
+The game is currently configured to use colored rectangles as placeholders instead of actual sprite images. When you're ready to add real sprites:
+
+1. Create the `assets/sprites/` directory structure
+2. Add your sprite images with these exact filenames:
+   - `player.png` - Your character
+   - `jiraMonster.png` - JIRA ticket enemy
+   - `zombieManager.png` - Manager enemy
+   - `meeting.png` - Meeting enemy
+   - `arrow.png` - Projectile
+
+3. In `career-quest.js`, find the `loadSprites()` method and uncomment the image loading code:
+   ```javascript
+   async loadSprites() {
+     const spriteNames = ['player', 'jiraMonster', 'zombieManager', 'meeting', 'arrow'];
+     const loadPromises = spriteNames.map(name => {
+       return new Promise((resolve) => {
+         // Comment out or remove this placeholder code:
+         // this.sprites[name] = { width: 32, height: 48, placeholder: true };
+         // resolve();
+         
+         // Uncomment this code:
+         const img = new Image();
+         img.onload = () => {
+           this.sprites[name] = img;
+           resolve();
+         };
+         img.onerror = () => {
+           // Fallback to placeholder on error
+           this.sprites[name] = { width: 32, height: 48, placeholder: true };
+           resolve();
+         };
+         img.src = `assets/sprites/${name}.png`;
+       });
+     });
+     
+     await Promise.all(loadPromises);
+   }
+   ```
+
+4. The game will automatically use your sprite images instead of the colored rectangles.
+
 ## Artwork Creation
 
 For authentic retro game vibes, create pixel art sprites for:
