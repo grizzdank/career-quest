@@ -1,80 +1,95 @@
-// Player.js - Handles the player entity
+// Player.js - Player character entity
 
 export class Player {
-  constructor(game, x, y) {
-    this.game = game;
+  constructor(x, y, sprite, game) {
     this.type = 'player';
     this.x = x;
     this.y = y;
-    this.width = 40;
-    this.height = 60;
+    this.width = 32;
+    this.height = 48;
+    this.sprite = sprite;
+    this.game = game;
+    this.active = true;
+    
+    // Movement properties
     this.velocityX = 0;
     this.velocityY = 0;
-    this.speed = 5;
-    this.jumpForce = 12;
-    this.gravity = 0.5;
+    this.speed = 3.5;
+    this.jumpForce = -10;
+    this.gravity = 0.4;
     this.isJumping = false;
-    this.isGrounded = false;
-    this.sprite = game.assetLoader.getSprite('player');
-    
-    // Debug info
-    console.log('Player created:', { x, y, sprite: this.sprite ? 'loaded' : 'missing' });
   }
   
-  update(deltaTime) {
+  update(deltaTime, entities) {
     // Apply gravity
     this.velocityY += this.gravity;
     
-    // Apply horizontal movement based on key states
-    if (this.game.keys.ArrowLeft) {
-      this.velocityX = -this.speed;
-    } else if (this.game.keys.ArrowRight) {
-      this.velocityX = this.speed;
-    } else {
-      // Apply friction when no keys are pressed
-      this.velocityX *= 0.8;
-      if (Math.abs(this.velocityX) < 0.1) this.velocityX = 0;
-    }
-    
-    // Apply jump if key is pressed and player is on the ground
-    if (this.game.keys.ArrowUp && this.isGrounded) {
-      this.velocityY = -this.jumpForce;
-      this.isGrounded = false;
-      this.isJumping = true;
+    // Apply friction to stop movement when keys aren't pressed
+    this.velocityX *= 0.8; // This will gradually slow down the player
+    if (Math.abs(this.velocityX) < 0.1) {
+      this.velocityX = 0; // Stop completely when very slow
     }
     
     // Update position
     this.x += this.velocityX;
     this.y += this.velocityY;
     
-    // Check for ground collision
-    if (this.y + this.height >= this.game.canvas.height - 50) {
-      this.y = this.game.canvas.height - 50 - this.height;
+    // Ground collision
+    if (this.y > this.game.canvas.height - 80 - this.height) {
+      this.y = this.game.canvas.height - 80 - this.height;
       this.velocityY = 0;
-      this.isGrounded = true;
       this.isJumping = false;
     }
     
-    // Check for wall collisions
-    if (this.x < 0) {
-      this.x = 0;
-      this.velocityX = 0;
-    }
-    if (this.x + this.width > this.game.canvas.width) {
+    // Wall collision
+    if (this.x < 0) this.x = 0;
+    if (this.x > this.game.canvas.width - this.width) {
       this.x = this.game.canvas.width - this.width;
-      this.velocityX = 0;
     }
   }
   
-  createArrow() {
-    // Only create an arrow if not already in the coding state
-    if (this.game.gameState === 'playing') {
-      // Create an arrow at the player's position
-      return this.game.entityManager.createArrow(
-        this.x + this.width / 2, 
-        this.y + this.height / 2
-      );
+  moveLeft(deltaTime) {
+    this.velocityX = -this.speed;
+  }
+  
+  moveRight(deltaTime) {
+    this.velocityX = this.speed;
+  }
+  
+  jump() {
+    if (!this.isJumping) {
+      this.velocityY = this.jumpForce;
+      this.isJumping = true;
     }
-    return null;
+  }
+  
+  render(ctx) {
+    if (this.sprite && !this.sprite.placeholder) {
+      // Draw actual sprite
+      ctx.drawImage(
+        this.sprite,
+        this.x,
+        this.y,
+        this.width,
+        this.height
+      );
+    } else {
+      // Draw placeholder rectangle
+      ctx.fillStyle = '#4CAF50';
+      ctx.fillRect(this.x, this.y, this.width, this.height);
+      
+      // Draw face
+      ctx.fillStyle = '#fff';
+      ctx.fillRect(this.x + 8, this.y + 12, 4, 4);
+      ctx.fillRect(this.x + 20, this.y + 12, 4, 4);
+      ctx.fillRect(this.x + 8, this.y + 24, 16, 2);
+    }
+    
+    // Draw bounding box if debug is enabled
+    if (this.game.debugInfo?.showBoundingBoxes) {
+      ctx.strokeStyle = '#ff0000';
+      ctx.lineWidth = 1;
+      ctx.strokeRect(this.x, this.y, this.width, this.height);
+    }
   }
 } 

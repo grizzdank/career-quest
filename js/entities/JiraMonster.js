@@ -1,23 +1,44 @@
 // JiraMonster.js - Handles the JiraMonster enemy entity
 
 export class JiraMonster {
-  constructor(game, x, y) {
-    this.game = game;
+  constructor(x, y, sprite, game) {
+    console.log('JiraMonster constructor called with:', {
+      x, 
+      y,
+      spriteExists: !!sprite,
+      spriteType: sprite ? typeof sprite : 'N/A',
+      gameExists: !!game,
+      gameType: game ? typeof game : 'N/A'
+    });
+    
     this.type = 'jiraMonster';
     this.x = x;
     this.y = y;
     this.width = 64;
     this.height = 64;
-    this.velocityX = Math.random() > 0.5 ? 2 : -2;
+    
+    // Ensure sprite is defined
+    if (!sprite) {
+      console.warn('JiraMonster created with missing sprite');
+      sprite = { width: 64, height: 64, placeholder: true };
+    }
+    
+    // Ensure game is defined
+    if (!game) {
+      console.error('JiraMonster constructor called with undefined game object');
+      game = {
+        canvas: { width: 800, height: 600 }
+      };
+    }
+    
+    this.sprite = sprite;
+    this.game = game;
+    this.velocityX = Math.random() > 0.5 ? 0.8 : -0.8;
     this.velocityY = 0;
-    this.gravity = 0.5;
+    this.gravity = 0.4;
     this.isGrounded = false;
     this.health = 1;
-    this.isDead = false;
-    this.markedForRemoval = false;
-    
-    // Load sprite
-    this.sprite = game.assetLoader.getSprite('jiraMonster');
+    this.active = true;
     
     // Set dimensions based on sprite if available
     if (this.sprite && !this.sprite.placeholder) {
@@ -64,7 +85,7 @@ export class JiraMonster {
   }
   
   update(deltaTime) {
-    if (this.isDead) return;
+    if (!this.active) return;
     
     // Apply gravity
     this.velocityY += this.gravity;
@@ -74,8 +95,8 @@ export class JiraMonster {
     this.y += this.velocityY;
     
     // Check for ground collision
-    if (this.y + this.height >= this.game.canvas.height - 50) {
-      this.y = this.game.canvas.height - 50 - this.height;
+    if (this.y + this.height >= this.game.canvas.height - 80) {
+      this.y = this.game.canvas.height - 80 - this.height;
       this.velocityY = 0;
       this.isGrounded = true;
     }
@@ -96,6 +117,30 @@ export class JiraMonster {
     }
   }
   
+  render(ctx) {
+    if (this.sprite && !this.sprite.placeholder) {
+      // Draw actual sprite
+      ctx.drawImage(
+        this.sprite,
+        this.x,
+        this.y,
+        this.width,
+        this.height
+      );
+    } else {
+      // Draw placeholder rectangle
+      ctx.fillStyle = '#ff3366';
+      ctx.fillRect(this.x, this.y, this.width, this.height);
+    }
+    
+    // Draw bounding box if debug is enabled
+    if (this.game.debugInfo?.showBoundingBoxes) {
+      ctx.strokeStyle = '#ff0000';
+      ctx.lineWidth = 1;
+      ctx.strokeRect(this.x, this.y, this.width, this.height);
+    }
+  }
+  
   hit() {
     this.health--;
     if (this.health <= 0) {
@@ -104,10 +149,8 @@ export class JiraMonster {
   }
   
   die() {
-    this.isDead = true;
-    this.markedForRemoval = true;
+    this.active = false;
     this.game.enemiesDefeated++;
-    
     console.log('JiraMonster defeated!');
   }
 } 

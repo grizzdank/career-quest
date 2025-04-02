@@ -1,29 +1,37 @@
 // ZombieManager.js - Handles the ZombieManager enemy entity
 
 export class ZombieManager {
-  constructor(game, x, y) {
-    this.game = game;
+  constructor(x, y, sprite, game) {
+    // Simple and direct setup with no potentially failing operations
     this.type = 'zombieManager';
-    this.x = x;
-    this.y = y;
+    this.x = x || 100;
+    this.y = y || 100;
     this.width = 50;
     this.height = 70;
-    this.velocityX = Math.random() > 0.5 ? 1.5 : -1.5;
+    
+    // Use provided sprite or create a default one
+    this.sprite = sprite || { width: 50, height: 70, placeholder: true, color: '#ff9900' };
+    
+    // Safe game object initialization
+    this.game = game || { canvas: { width: 800, height: 600 } };
+    
+    // Initialize other properties
+    this.velocityX = Math.random() > 0.5 ? 1.0 : -1.0;
     this.velocityY = 0;
-    this.gravity = 0.5;
+    this.gravity = 0.4;
     this.isGrounded = false;
+    this.jumpTimer = 0;
+    this.jumpInterval = Math.random() * 3000 + 2000;
     this.health = 1;
     this.isDead = false;
     this.markedForRemoval = false;
+    this.active = true;
     
-    // Load sprite
-    this.sprite = game.assetLoader.getSprite('zombieManager');
-    
-    // Debug info
-    console.log('ZombieManager created:', { 
-      x, 
-      y, 
-      sprite: this.sprite ? (this.sprite.placeholder ? 'placeholder' : 'loaded') : 'missing' 
+    console.log('ZombieManager created with:', {
+      x: this.x,
+      y: this.y,
+      hasSprite: !!this.sprite,
+      hasGame: !!this.game
     });
   }
   
@@ -61,7 +69,7 @@ export class ZombieManager {
     
     // Occasionally jump
     if (this.isGrounded && Math.random() < 0.01) {
-      this.velocityY = -10;
+      this.velocityY = -8;
       this.isGrounded = false;
     }
   }
@@ -79,5 +87,43 @@ export class ZombieManager {
     this.game.enemiesDefeated++;
     
     console.log('ZombieManager defeated!');
+  }
+  
+  render(ctx) {
+    if (this.isDead) return;
+    
+    if (this.sprite && !this.sprite.placeholder) {
+      // Draw the sprite if available
+      ctx.drawImage(
+        this.sprite,
+        this.x,
+        this.y,
+        this.width,
+        this.height
+      );
+    } else {
+      // Draw a placeholder rectangle
+      ctx.fillStyle = '#ff9900';
+      ctx.fillRect(this.x, this.y, this.width, this.height);
+      
+      // Add some details to make it look like a zombie manager
+      ctx.fillStyle = '#333333';
+      ctx.beginPath();
+      ctx.arc(this.x + this.width/2, this.y + 20, 10, 0, Math.PI * 2);
+      ctx.fill();
+      
+      // Draw arms
+      ctx.strokeStyle = '#ff9900';
+      ctx.lineWidth = 5;
+      ctx.beginPath();
+      ctx.moveTo(this.x + 10, this.y + 30);
+      ctx.lineTo(this.x, this.y + 50);
+      ctx.stroke();
+      
+      ctx.beginPath();
+      ctx.moveTo(this.x + this.width - 10, this.y + 30);
+      ctx.lineTo(this.x + this.width, this.y + 50);
+      ctx.stroke();
+    }
   }
 } 

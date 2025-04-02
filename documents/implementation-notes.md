@@ -31,8 +31,9 @@ your-website/
 │   ├── backgrounds/      # Background images
 │   │   ├── title-bg.png
 │   │   └── game-bg.png
-│   ├── sounds/           # Game sound effects
-│   └── music/            # Background music
+│   └── audio/            # Sounds
+│       ├── effects/      # Game sound effects
+|       └── soundtrack.mp3 # Soundtrack
 └── README.md             # Documentation
 ```
 
@@ -122,6 +123,12 @@ Create real-world relevant coding challenges for your field:
 3. Debugging exercises
 4. Design pattern implementations
 
+Future enhancements:
+- Add support for multiple programming languages (JavaScript, Python, etc.)
+- Implement language-specific syntax highlighting and validation
+- Allow the player to choose their preferred coding language
+- Create language-appropriate challenge sets with comparable difficulty levels
+
 ## Technical Improvements
 
 To enhance the game further:
@@ -132,6 +139,12 @@ To enhance the game further:
 4. Add sound effects and background music
 5. Implement a save system to remember progress
 6. Create a more robust code editor for coding challenges
+7. Improve the minigame code puzzle UI and functionality:
+   - Add syntax highlighting
+   - Implement proper text cursor handling
+   - Support code snippets and auto-completion
+   - Provide better feedback and error messages
+   - Include multiple difficulty levels for challenges
 
 ## Performance Considerations
 

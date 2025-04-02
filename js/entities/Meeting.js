@@ -1,29 +1,35 @@
 // Meeting.js - Handles the Meeting enemy entity
 
 export class Meeting {
-  constructor(game, x, y) {
-    this.game = game;
+  constructor(x, y, sprite, game) {
+    // Simple and direct setup with no potentially failing operations
     this.type = 'meeting';
-    this.x = x;
-    this.y = y;
+    this.x = x || 100;
+    this.y = y || 100;
     this.width = 60;
     this.height = 60;
-    this.velocityX = Math.random() > 0.5 ? 1 : -1;
+    
+    // Use provided sprite or create a default one
+    this.sprite = sprite || { width: 60, height: 60, placeholder: true, color: '#cc66ff' };
+    
+    // Safe game object initialization
+    this.game = game || { canvas: { width: 800, height: 600 } };
+    
+    // Initialize other properties
+    this.velocityX = Math.random() > 0.5 ? 0.8 : -0.8;
     this.velocityY = 0;
-    this.gravity = 0.5;
+    this.gravity = 0.3;
     this.isGrounded = false;
     this.health = 1;
     this.isDead = false;
     this.markedForRemoval = false;
+    this.active = true;
     
-    // Load sprite
-    this.sprite = game.assetLoader.getSprite('meeting');
-    
-    // Debug info
-    console.log('Meeting created:', { 
-      x, 
-      y, 
-      sprite: this.sprite ? (this.sprite.placeholder ? 'placeholder' : 'loaded') : 'missing' 
+    console.log('Meeting created with:', {
+      x: this.x,
+      y: this.y,
+      hasSprite: !!this.sprite,
+      hasGame: !!this.game
     });
   }
   
@@ -61,7 +67,7 @@ export class Meeting {
     
     // Meetings occasionally float upward (defying gravity)
     if (Math.random() < 0.02) {
-      this.velocityY = -2;
+      this.velocityY = -1.5;
     }
   }
   
@@ -78,5 +84,34 @@ export class Meeting {
     this.game.enemiesDefeated++;
     
     console.log('Meeting defeated!');
+  }
+  
+  render(ctx) {
+    if (this.isDead) return;
+    
+    if (this.sprite && !this.sprite.placeholder) {
+      // Draw the sprite if available
+      ctx.drawImage(
+        this.sprite,
+        this.x,
+        this.y,
+        this.width,
+        this.height
+      );
+    } else {
+      // Draw a placeholder rectangle
+      ctx.fillStyle = '#cc66ff';
+      ctx.fillRect(this.x, this.y, this.width, this.height);
+      
+      // Add some details to make it look like a meeting
+      ctx.fillStyle = '#ffffff';
+      ctx.beginPath();
+      ctx.arc(this.x + this.width/2, this.y + this.height/2, 15, 0, Math.PI * 2);
+      ctx.fill();
+      
+      ctx.fillStyle = '#000000';
+      ctx.font = '10px Arial';
+      ctx.fillText('MEETING', this.x + 10, this.y + this.height/2 + 3);
+    }
   }
 } 

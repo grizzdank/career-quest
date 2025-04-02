@@ -1,0 +1,11 @@
+---
+description: project rules
+globs: 
+alwaysApply: true
+---
+
+# Your rule content
+
+*   Never commit sensitive information like API keys to the repository; use `.env` files and add them to `.gitignore`.
+*   if files and components are close to 1000 lines, suggest refactoring 
+*   when encountering errors do the following: Reflect on 5-7 different possible source of the problem, distill those down to 1-2 most likely sources, and the add logs to validate your assumptions before we move onto the implementing the actual code fix

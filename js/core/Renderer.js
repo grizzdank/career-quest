@@ -11,6 +11,11 @@ export class Renderer {
     // Clear canvas
     this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
     
+    // Calculate FPS for debug info
+    if (deltaTime > 0) {
+      this.game.debugInfo.fps = Math.round(1000 / deltaTime);
+    }
+    
     // Render based on game state
     switch (this.game.gameState) {
       case 'loading':
@@ -28,7 +33,13 @@ export class Renderer {
       case 'dialog':
         this.renderDialog();
         break;
+      case 'minimized':
+        this.renderMinimized();
+        break;
     }
+    
+    // Always render UI on top
+    this.game.uiManager.renderUI();
   }
   
   renderLoading() {
@@ -100,7 +111,7 @@ export class Renderer {
     
     // Ground
     this.ctx.fillStyle = '#3d3d3d';
-    this.ctx.fillRect(0, this.canvas.height - 50, this.canvas.width, 50);
+    this.ctx.fillRect(0, this.canvas.height - 80, this.canvas.width, 80);
     
     // Render all entities
     this.game.entityManager.entities.forEach(entity => this.renderEntity(entity));
@@ -114,6 +125,9 @@ export class Renderer {
     this.ctx.textAlign = 'right';
     this.ctx.fillText('Press SPACE to code', this.canvas.width - 20, 30);
     
+    // Minimize button
+    this.drawMinimizeButton();
+    
     // Controls indicator
     this.ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
     this.ctx.fillRect(20, this.canvas.height - 120, 220, 90);
@@ -124,66 +138,185 @@ export class Renderer {
     this.ctx.fillText('← → : Move left/right', 30, this.canvas.height - 80);
     this.ctx.fillText('↑ : Jump', 30, this.canvas.height - 60);
     this.ctx.fillText('SPACE : Create code weapon', 30, this.canvas.height - 40);
+    this.ctx.fillText('M : Minimize game', 30, this.canvas.height - 20);
   }
   
   renderCoding() {
-    // Background
-    this.ctx.fillStyle = '#222';
+    // Background with slight transparency for code overlay
+    this.ctx.fillStyle = 'rgba(0, 0, 0, 0.85)';
     this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
     
     // Code area
-    this.ctx.fillStyle = '#333';
+    this.ctx.fillStyle = '#1e1e1e'; // VS Code-like dark theme
     const codeAreaWidth = Math.min(800, this.canvas.width - 100);
-    const codeAreaHeight = 300;
+    const codeAreaHeight = 350;
     const codeAreaX = (this.canvas.width - codeAreaWidth) / 2;
     const codeAreaY = (this.canvas.height - codeAreaHeight) / 2;
+    
+    // Main code editor background
     this.ctx.fillRect(codeAreaX, codeAreaY, codeAreaWidth, codeAreaHeight);
     
-    // Prompt
+    // Title bar with challenge difficulty
+    this.ctx.fillStyle = '#007acc'; // Blue title bar
+    this.ctx.fillRect(codeAreaX, codeAreaY, codeAreaWidth, 30);
+    
+    // Title text
     this.ctx.fillStyle = '#fff';
-    this.ctx.font = '16px monospace';
+    this.ctx.font = 'bold 14px monospace';
+    this.ctx.textAlign = 'left';
+    const challenge = this.game.codingChallenge;
+    this.ctx.fillText(
+      `Code Challenge - ${challenge.difficulty.toUpperCase()}`, 
+      codeAreaX + 10, 
+      codeAreaY + 20
+    );
+    
+    // Prompt section background
+    this.ctx.fillStyle = '#252526';
+    this.ctx.fillRect(codeAreaX, codeAreaY + 30, codeAreaWidth, 50);
+    
+    // Prompt text
+    this.ctx.fillStyle = '#d4d4d4';
+    this.ctx.font = '14px monospace';
     this.ctx.textAlign = 'left';
     this.ctx.fillText(
-      this.game.codingChallenge.prompt, 
+      challenge.prompt, 
       codeAreaX + 20, 
-      codeAreaY + 30
+      codeAreaY + 55
     );
     
-    // User code
-    this.ctx.fillText(
-      this.game.codingChallenge.userCode || 'Type your code here...', 
-      codeAreaX + 20, 
-      codeAreaY + 70
-    );
+    // Code editor background
+    this.ctx.fillStyle = '#1e1e1e';
+    this.ctx.fillRect(codeAreaX, codeAreaY + 80, codeAreaWidth, 200);
     
-    // Cursor blinking effect
-    if (Math.floor(Date.now() / 500) % 2 === 0) {
-      const textWidth = this.ctx.measureText(this.game.codingChallenge.userCode || 'Type your code here...').width;
-      this.ctx.fillRect(
-        codeAreaX + 20 + textWidth, 
-        codeAreaY + 58, 
-        10, 
-        2
+    // Line numbers background
+    this.ctx.fillStyle = '#252526';
+    this.ctx.fillRect(codeAreaX, codeAreaY + 80, 30, 200);
+    
+    // Line numbers
+    this.ctx.fillStyle = '#858585';
+    this.ctx.font = '12px monospace';
+    this.ctx.textAlign = 'right';
+    const userCode = challenge.userCode || '';
+    const lineCount = userCode.split('\n').length || 1;
+    for (let i = 0; i < lineCount; i++) {
+      this.ctx.fillText(
+        (i + 1).toString(), 
+        codeAreaX + 25, 
+        codeAreaY + 100 + (i * 16)
       );
     }
+    
+    // User code with syntax highlighting (simplified)
+    this.ctx.fillStyle = '#d4d4d4'; // Default text color
+    this.ctx.font = '14px monospace';
+    this.ctx.textAlign = 'left';
+    
+    // Split code by lines
+    const lines = userCode.split('\n');
+    const lineHeight = 16;
+    
+    // Render each line with basic syntax highlighting
+    lines.forEach((line, lineIndex) => {
+      let xPos = codeAreaX + 40;
+      let yPos = codeAreaY + 100 + (lineIndex * lineHeight);
+      
+      // Simple syntax highlighting by word
+      const words = line.split(/(\s+|[(){}[\],;])/);
+      words.forEach(word => {
+        // Choose color based on word type
+        if (/function|return|if|else|for|while|let|const|var/.test(word)) {
+          this.ctx.fillStyle = '#569cd6'; // Blue for keywords
+        } else if (/true|false|null|undefined|this|new/.test(word)) {
+          this.ctx.fillStyle = '#569cd6'; // Blue for literals
+        } else if (/["'].*["']/.test(word)) {
+          this.ctx.fillStyle = '#ce9178'; // Orange for strings
+        } else if (/\d+/.test(word)) {
+          this.ctx.fillStyle = '#b5cea8'; // Light green for numbers
+        } else if (/[+\-*/=<>!&|]+/.test(word)) {
+          this.ctx.fillStyle = '#d4d4d4'; // White for operators
+        } else if (/[(){}[\],;]/.test(word)) {
+          this.ctx.fillStyle = '#d4d4d4'; // White for punctuation
+        } else {
+          this.ctx.fillStyle = '#9cdcfe'; // Light blue for variables
+        }
+        
+        // Draw the word
+        this.ctx.fillText(word, xPos, yPos);
+        xPos += this.ctx.measureText(word).width;
+      });
+    });
+    
+    // Draw cursor
+    const cursorPos = challenge.cursorPosition || 0;
+    let cursorLine = 0;
+    let cursorCol = 0;
+    let charCount = 0;
+    
+    for (let i = 0; i < lines.length; i++) {
+      if (charCount + lines[i].length >= cursorPos) {
+        cursorLine = i;
+        cursorCol = cursorPos - charCount;
+        break;
+      }
+      // Add line length plus 1 for the newline character
+      charCount += lines[i].length + 1;
+      if (charCount >= cursorPos) {
+        cursorLine = i + 1;
+        cursorCol = 0;
+        break;
+      }
+    }
+    
+    // Calculate cursor x position based on text width
+    const textBeforeCursor = lines[cursorLine]?.substring(0, cursorCol) || '';
+    const cursorX = codeAreaX + 40 + this.ctx.measureText(textBeforeCursor).width;
+    const cursorY = codeAreaY + 100 + (cursorLine * lineHeight);
+    
+    // Draw blinking cursor
+    if (Math.floor(Date.now() / 500) % 2 === 0) {
+      this.ctx.fillStyle = '#d4d4d4';
+      this.ctx.fillRect(cursorX, cursorY - 12, 2, 16);
+    }
+    
+    // Feedback section
+    this.ctx.fillStyle = '#252526';
+    this.ctx.fillRect(codeAreaX, codeAreaY + 280, codeAreaWidth, 40);
+    
+    // Feedback text
+    if (challenge.feedback) {
+      if (challenge.feedback.includes('Great job')) {
+        this.ctx.fillStyle = '#4CAF50'; // Green for success
+      } else {
+        this.ctx.fillStyle = '#e74c3c'; // Red for errors
+      }
+      this.ctx.font = '14px monospace';
+      this.ctx.textAlign = 'left';
+      this.ctx.fillText(
+        challenge.feedback, 
+        codeAreaX + 20, 
+        codeAreaY + 305
+      );
+    }
+    
+    // Example code hint
+    this.ctx.fillStyle = '#666';
+    this.ctx.textAlign = 'left';
+    this.ctx.font = '12px monospace';
+    this.ctx.fillText(
+      'Example: ' + challenge.example, 
+      codeAreaX + 20, 
+      codeAreaY + 335
+    );
     
     // Instructions
     this.ctx.fillStyle = '#aaa';
     this.ctx.font = '14px monospace';
     this.ctx.textAlign = 'center';
     this.ctx.fillText(
-      'Type your code and press Ctrl+Enter to submit', 
+      'Type your code and press Ctrl+Enter to submit, Esc to cancel', 
       this.canvas.width / 2, 
       codeAreaY + codeAreaHeight + 30
-    );
-    
-    // Example
-    this.ctx.fillStyle = '#666';
-    this.ctx.textAlign = 'left';
-    this.ctx.fillText(
-      'Example: function add(a, b) { return a + b; }', 
-      codeAreaX + 20, 
-      codeAreaY + codeAreaHeight - 20
     );
   }
   
@@ -226,72 +359,182 @@ export class Renderer {
     );
   }
   
+  renderMinimized() {
+    // Dark header bar with game info
+    this.ctx.fillStyle = '#222';
+    this.ctx.fillRect(0, 0, this.canvas.width, 80);
+    
+    // Game logo/title
+    this.ctx.fillStyle = '#fff';
+    this.ctx.font = 'bold 20px monospace';
+    this.ctx.textAlign = 'left';
+    this.ctx.fillText('Career Quest - Minimized', 20, 30);
+    
+    // Game stats
+    this.ctx.font = '14px monospace';
+    this.ctx.fillText(`Level: ${this.game.currentLevel + 1} | Enemies Defeated: ${this.game.enemiesDefeated}`, 20, 55);
+    
+    // Expand button
+    const buttonX = this.canvas.width - 120;
+    const buttonY = 20;
+    const buttonWidth = 100;
+    const buttonHeight = 40;
+    
+    // Button background
+    this.ctx.fillStyle = '#4CAF50';
+    this.ctx.beginPath();
+    this.ctx.roundRect(buttonX, buttonY, buttonWidth, buttonHeight, 8);
+    this.ctx.fill();
+    
+    // Button text
+    this.ctx.fillStyle = '#fff';
+    this.ctx.font = 'bold 14px monospace';
+    this.ctx.textAlign = 'center';
+    this.ctx.fillText('RESUME GAME', buttonX + buttonWidth/2, buttonY + buttonHeight/2 + 5);
+    
+    // Helper text
+    this.ctx.textAlign = 'right';
+    this.ctx.fillStyle = '#aaa';
+    this.ctx.font = '12px monospace';
+    this.ctx.fillText('Click anywhere or press M to maximize', this.canvas.width - 130, 70);
+  }
+  
   renderBackground() {
-    console.log('Render background called:', {
-      gameState: this.game.gameState,
-      backgroundsExist: !!this.game.assetLoader.backgrounds,
-      currentBackground: this.game.assetLoader.backgrounds && 
-                        this.game.assetLoader.backgrounds[this.game.gameState] ? 'exists' : 'missing'
+    // Get parallax layers
+    const layers = this.game.assetLoader.getParallaxLayers();
+    
+    console.log('Rendering background:', {
+      hasParallaxLayers: !!layers,
+      layerStatus: {
+        background: !!layers.background?.image,
+        midground: !!layers.midground?.image,
+        foreground: !!layers.foreground?.image
+      },
+      gameState: this.game.gameState
     });
     
-    // Get the appropriate background for the current game state
-    const background = this.game.assetLoader.getBackground(this.game.gameState);
-    
-    if (background) {
-      try {
-        const scale = Math.min(
-          this.canvas.width / background.width,
-          this.canvas.height / background.height
-        );
-        console.log('Background scale calculated:', {
-          scale,
-          bgWidth: background.width,
-          bgHeight: background.height
-        });
-        
-        const x = (this.canvas.width - background.width * scale) / 2;
-        const y = (this.canvas.height - background.height * scale) / 2;
-        
-        console.log('Drawing background at:', { x, y, scale });
-        this.ctx.drawImage(
-          background,
-          x, y,
-          background.width * scale,
-          background.height * scale
-        );
-        
-        // Add debug info
-        if (this.game.debugInfo) {
-          this.game.debugInfo.lastRenderAttempt = new Date().toISOString();
-          this.game.debugInfo.lastRenderSuccess = true;
-        }
-      } catch (err) {
-        console.error('Error rendering background:', err);
-        if (this.game.debugInfo) {
-          this.game.debugInfo.errors.push(`Error rendering background: ${err.message}`);
-          this.game.debugInfo.lastRenderSuccess = false;
-        }
-        
-        // Fallback to a colored background
-        this.ctx.fillStyle = '#3a7ecf';
-        this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
-      }
-    } else {
-      // No background loaded, use fallback
-      this.ctx.fillStyle = '#3a7ecf';
-      this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+    // If we have parallax layers, render them
+    if (layers.background && layers.midground && layers.foreground) {
+      // Calculate player position relative to canvas width for scrolling
+      const player = this.game.entityManager.player;
+      const playerRatio = player ? (player.x / this.canvas.width) : 0.5;
       
+      console.log('Parallax info:', {
+        playerX: player?.x,
+        canvasWidth: this.canvas.width,
+        playerRatio
+      });
+      
+      // Render each layer with parallax effect
+      Object.entries(layers).forEach(([name, layer]) => {
+        if (!layer || !layer.image) return;
+        
+        // Calculate layer offset based on player position and layer speed
+        const maxOffset = this.canvas.width - layer.image.width;
+        layer.x = maxOffset * playerRatio * layer.speed;
+        
+        // Draw the layer twice to create seamless scrolling
+        this.ctx.drawImage(
+          layer.image,
+          layer.x,
+          0,
+          layer.image.width,
+          layer.image.height,
+          0,
+          0,
+          this.canvas.width,
+          this.canvas.height
+        );
+        
+        // Draw second copy if needed to fill gap
+        if (layer.x > 0) {
+          this.ctx.drawImage(
+            layer.image,
+            layer.x - layer.image.width,
+            0,
+            layer.image.width,
+            layer.image.height,
+            0,
+            0,
+            this.canvas.width,
+            this.canvas.height
+          );
+        } else if (layer.x + layer.image.width < this.canvas.width) {
+          this.ctx.drawImage(
+            layer.image,
+            layer.x + layer.image.width,
+            0,
+            layer.image.width,
+            layer.image.height,
+            0,
+            0,
+            this.canvas.width,
+            this.canvas.height
+          );
+        }
+      });
+      
+      // Add debug info
       if (this.game.debugInfo) {
         this.game.debugInfo.lastRenderAttempt = new Date().toISOString();
-        this.game.debugInfo.lastRenderSuccess = false;
+        this.game.debugInfo.lastRenderSuccess = true;
+      }
+    } else {
+      // Fallback to original background if parallax layers aren't loaded
+      const background = this.game.assetLoader.getBackground(this.game.gameState);
+      
+      if (background) {
+        try {
+          const scale = Math.min(
+            this.canvas.width / background.width,
+            this.canvas.height / background.height
+          );
+          
+          const x = (this.canvas.width - background.width * scale) / 2;
+          const y = (this.canvas.height - background.height * scale) / 2;
+          
+          this.ctx.drawImage(
+            background,
+            x, y,
+            background.width * scale,
+            background.height * scale
+          );
+          
+          if (this.game.debugInfo) {
+            this.game.debugInfo.lastRenderAttempt = new Date().toISOString();
+            this.game.debugInfo.lastRenderSuccess = true;
+          }
+        } catch (err) {
+          console.error('Error rendering background:', err);
+          if (this.game.debugInfo) {
+            this.game.debugInfo.errors.push(`Error rendering background: ${err.message}`);
+            this.game.debugInfo.lastRenderSuccess = false;
+          }
+          
+          // Fallback to a colored background
+          this.ctx.fillStyle = '#3a7ecf';
+          this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+        }
+      } else {
+        // No background loaded, use fallback
+        this.ctx.fillStyle = '#3a7ecf';
+        this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+        
+        if (this.game.debugInfo) {
+          this.game.debugInfo.lastRenderAttempt = new Date().toISOString();
+          this.game.debugInfo.lastRenderSuccess = false;
+        }
       }
     }
   }
   
   renderEntity(entity) {
     try {
-      if (entity.sprite && entity.sprite.placeholder) {
-        // Render placeholder
+      // Use the entity's own render method if it exists
+      if (entity.render) {
+        entity.render(this.ctx);
+      } else if (entity.sprite && entity.sprite.placeholder) {
+        // Fallback to placeholder rendering
         this.ctx.fillStyle = this.getColorForEntityType(entity.type);
         this.ctx.fillRect(entity.x, entity.y, entity.width, entity.height);
       } else {
@@ -302,18 +545,20 @@ export class Renderer {
             y: entity.y,
             width: entity.width,
             height: entity.height,
-            spriteComplete: entity.sprite.complete,
-            spriteWidth: entity.sprite.width,
-            spriteHeight: entity.sprite.height
+            spriteComplete: entity.sprite?.complete,
+            spriteWidth: entity.sprite?.width,
+            spriteHeight: entity.sprite?.height
           });
         }
         
         // Render actual sprite
-        this.ctx.drawImage(entity.sprite, entity.x, entity.y, entity.width, entity.height);
+        if (entity.sprite) {
+          this.ctx.drawImage(entity.sprite, entity.x, entity.y, entity.width, entity.height);
+        }
       }
       
       // Draw entity bounding box for debugging
-      if (this.game.debugInfo && this.game.debugInfo.showBoundingBoxes) {
+      if (this.game.debugInfo?.showBoundingBoxes) {
         this.ctx.strokeStyle = '#ff0000';
         this.ctx.lineWidth = 1;
         this.ctx.strokeRect(entity.x, entity.y, entity.width, entity.height);
@@ -341,5 +586,47 @@ export class Renderer {
       arrow: '#ffffff'
     };
     return colors[type] || '#888888';
+  }
+  
+  // Add this new method to draw the minimize button
+  drawMinimizeButton() {
+    const buttonX = this.canvas.width - 50;
+    const buttonY = 50;
+    const buttonSize = 40;
+    
+    // Button background
+    this.ctx.fillStyle = 'rgba(0, 0, 0, 0.6)';
+    this.ctx.beginPath();
+    this.ctx.roundRect(buttonX, buttonY, buttonSize, buttonSize, 8);
+    this.ctx.fill();
+    
+    // Button border
+    this.ctx.strokeStyle = '#fff';
+    this.ctx.lineWidth = 2;
+    this.ctx.beginPath();
+    this.ctx.roundRect(buttonX, buttonY, buttonSize, buttonSize, 8);
+    this.ctx.stroke();
+    
+    // Minimize icon (horizontal line)
+    this.ctx.strokeStyle = '#fff';
+    this.ctx.lineWidth = 3;
+    this.ctx.beginPath();
+    this.ctx.moveTo(buttonX + 10, buttonY + buttonSize/2);
+    this.ctx.lineTo(buttonX + buttonSize - 10, buttonY + buttonSize/2);
+    this.ctx.stroke();
+    
+    // Button text
+    this.ctx.fillStyle = '#fff';
+    this.ctx.font = '10px monospace';
+    this.ctx.textAlign = 'center';
+    this.ctx.fillText('RESUME', buttonX + buttonSize/2, buttonY + buttonSize - 5);
+    
+    // Store button boundaries for click detection
+    this.minimizeButtonBounds = {
+      x: buttonX,
+      y: buttonY,
+      width: buttonSize,
+      height: buttonSize
+    };
   }
 } 
