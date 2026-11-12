@@ -1,0 +1,457 @@
+/* Career Quest: Defend the Deadline.
+   The stage is a fixed 960x540 box scaled to fit the viewport, so every size below
+   is in stage pixels and the layout is identical on a laptop and a sideways phone. */
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  height: 100%;
+  overflow: hidden;
+  background: #0f0e2a;
+  color: #f1f0ff;
+  font-family: ui-monospace, Menlo, Consolas, "Courier New", monospace;
+  -webkit-text-size-adjust: 100%;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+button {
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+.game {
+  position: fixed;
+  inset: 0;
+  height: 100dvh;
+}
+
+.game__stage {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 960px;
+  height: 540px;
+  transform-origin: center;
+  transform: translate(-50%, -50%);
+  overflow: hidden;
+  background: #211f52;
+}
+
+.game__canvas {
+  position: absolute;
+  inset: 0;
+  width: 960px;
+  height: 540px;
+  touch-action: none;
+}
+
+/* Top status line */
+.hud {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 0 122px 0 14px;
+  background: rgba(15, 14, 42, 0.82);
+  border-bottom: 2px solid #4a47a3;
+  font-size: 17px;
+  pointer-events: none;
+}
+
+.hud__stat {
+  padding: 4px 10px;
+  border-radius: 6px;
+  background: #2b2970;
+  white-space: nowrap;
+}
+
+.hud__stat b {
+  font-size: 20px;
+}
+
+.hud__stat--buffer b {
+  color: #ffd166;
+}
+
+.hud__stat--buffer.hud__stat--danger b {
+  color: #ff6b6b;
+}
+
+.hud__stat--focus b {
+  color: #8ce99a;
+}
+
+.hud__wave {
+  margin-left: auto;
+  font-weight: bold;
+  color: #c9c6ff;
+  white-space: nowrap;
+}
+
+/* Opens the enemy legend. Taller than the status line so it stays tappable on a phone. */
+.game__legend-button {
+  position: absolute;
+  top: 4px;
+  right: 8px;
+  width: 106px;
+  height: 64px;
+  border: 2px solid #7f7be0;
+  border-radius: 10px;
+  background: #23215c;
+  font-size: 14px;
+  font-weight: bold;
+}
+
+/* One line of context just above the build bar */
+.info {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 422px;
+  height: 30px;
+  padding: 0 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(15, 14, 42, 0.78);
+  font-size: 14px;
+  white-space: nowrap;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.info--alert {
+  color: #ffd166;
+}
+
+/* Build bar */
+.bar {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 88px;
+  display: flex;
+  gap: 8px;
+  padding: 8px 10px;
+  background: #0f0e2a;
+  border-top: 2px solid #4a47a3;
+}
+
+.bar__towers {
+  display: flex;
+  gap: 8px;
+  flex: 1;
+}
+
+.bar__tower {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0 6px;
+  border: 2px solid #4a47a3;
+  border-radius: 10px;
+  background: #23215c;
+  text-align: left;
+}
+
+.bar__tower--selected {
+  border-color: #ffe066;
+  background: #35327f;
+}
+
+.bar__tower--poor {
+  opacity: 0.55;
+}
+
+.bar__tower-icon {
+  width: 46px;
+  height: 46px;
+  flex: none;
+}
+
+.bar__tower-name {
+  display: block;
+  font-size: 14px;
+  font-weight: bold;
+  line-height: 1.15;
+}
+
+.bar__tower-cost {
+  display: block;
+  white-space: nowrap;
+  margin-top: 3px;
+  font-size: 15px;
+  color: #8ce99a;
+}
+
+.bar__button {
+  width: 76px;
+  border: 2px solid #4a47a3;
+  border-radius: 10px;
+  background: #23215c;
+  font-size: 14px;
+  font-weight: bold;
+  line-height: 1.2;
+}
+
+.bar__button--start {
+  width: 150px;
+  border-color: #ffd166;
+  background: #ffd166;
+  color: #17163f;
+  font-size: 16px;
+}
+
+.bar__button--start:disabled {
+  border-color: #4a47a3;
+  background: #1a1848;
+  color: #8f8cc9;
+  cursor: default;
+}
+
+/* Sell popover, positioned next to the selected tower */
+.popover {
+  position: absolute;
+  transform: translate(-50%, 0);
+}
+
+.popover__button {
+  min-width: 120px;
+  height: 64px;
+  padding: 0 14px;
+  border: 2px solid #ffffff;
+  border-radius: 10px;
+  background: #e5484d;
+  font-size: 16px;
+  font-weight: bold;
+}
+
+/* Title and end screens */
+.screen {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  padding: 16px;
+  background: rgba(15, 14, 42, 0.86);
+}
+
+.screen[hidden],
+.popover[hidden] {
+  display: none;
+}
+
+.screen--title {
+  background: #19174a url("../assets/backgrounds/office-small.jpg") center 28% / cover no-repeat;
+}
+
+.screen--end,
+.screen--legend {
+  align-items: center;
+}
+
+.screen__panel {
+  width: 640px;
+  padding: 16px 22px 14px;
+  border: 2px solid #7f7be0;
+  border-radius: 14px;
+  background: rgba(15, 14, 42, 0.93);
+  text-align: center;
+}
+
+.screen__panel--wide {
+  width: 860px;
+}
+
+.screen__title {
+  margin: 0;
+  font-size: 30px;
+  color: #ffd166;
+}
+
+.screen__lead {
+  margin: 6px 0 0;
+  font-size: 16px;
+}
+
+.screen__note {
+  margin: 6px 0 0;
+  font-size: 14px;
+  color: #c9c6ff;
+}
+
+.screen__steps {
+  margin: 10px 0 14px;
+  padding-left: 22px;
+  text-align: left;
+  font-size: 14.5px;
+  line-height: 1.45;
+}
+
+.screen__button {
+  min-width: 220px;
+  height: 64px;
+  padding: 0 24px;
+  border: 0;
+  border-radius: 12px;
+  background: #ffd166;
+  color: #17163f;
+  font-size: 20px;
+  font-weight: bold;
+}
+
+.screen__button--secondary {
+  min-width: 0;
+  margin-left: 10px;
+  border: 2px solid #7f7be0;
+  background: #23215c;
+  color: #f1f0ff;
+  font-size: 16px;
+}
+
+/* Enemy legend */
+.legend {
+  margin: 10px 0 12px;
+  text-align: left;
+}
+
+.legend__row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 4px 10px;
+  border-radius: 8px;
+}
+
+.legend__row--active {
+  background: #2b2970;
+}
+
+.legend__icon {
+  width: 52px;
+  height: 52px;
+  flex: none;
+}
+
+.legend__name {
+  width: 250px;
+  flex: none;
+  font-size: 16px;
+  font-weight: bold;
+  color: #ffd166;
+}
+
+.legend__tag {
+  display: block;
+  font-size: 12px;
+  font-weight: normal;
+  color: #8ce99a;
+}
+
+.legend__text {
+  font-size: 14px;
+  line-height: 1.35;
+}
+
+.screen__footer {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  margin-top: 12px;
+  text-align: left;
+}
+
+.screen__credit {
+  margin: 0;
+  font-size: 13px;
+  color: #c9c6ff;
+}
+
+.links__heading {
+  margin: 14px 0 8px;
+  font-size: 15px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: #8ce99a;
+}
+
+.links {
+  display: flex;
+  gap: 10px;
+}
+
+.links__item {
+  flex: 1;
+  min-height: 108px;
+  padding: 10px 12px;
+  border: 2px solid #4a47a3;
+  border-radius: 10px;
+  background: #23215c;
+  color: inherit;
+  text-align: left;
+  text-decoration: none;
+}
+
+a.links__item:hover,
+a.links__item:focus-visible {
+  border-color: #ffd166;
+}
+
+.links__item--pending {
+  border-style: dashed;
+  opacity: 0.8;
+}
+
+.links__title {
+  display: block;
+  font-size: 17px;
+  font-weight: bold;
+  color: #ffd166;
+}
+
+.links__text {
+  display: block;
+  margin-top: 5px;
+  font-size: 13px;
+  line-height: 1.35;
+}
+
+.links__url {
+  display: block;
+  margin-top: 6px;
+  font-size: 12px;
+  color: #8ce99a;
+}
+
+/* Phones held upright: the game still runs, but ask for landscape. */
+.rotate-hint {
+  display: none;
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 12%;
+  padding: 0 16px;
+  text-align: center;
+  font-size: 18px;
+  color: #ffd166;
+}
+
+@media (orientation: portrait) and (max-width: 600px) {
+  .rotate-hint {
+    display: block;
+  }
+}

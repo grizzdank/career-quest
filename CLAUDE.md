@@ -23,8 +23,8 @@ open -a "Google Chrome" index.html --args --auto-open-devtools-for-tabs
 - Method names should be verb-first (e.g., `loadSprites()`, `handleKeyDown()`)
 
 ### Game Entities
-- All game entities should extend the base `Entity` class
-- Entity types: 'player', 'jiraMonster', 'zombieManager', 'meeting', 'arrow'
+- All game entities should extend the base `Entity` class (in `js/sim.js`)
+- Enemy types: 'creep', 'sync', 'ticket', 'subticket', 'zombie', 'boss'; tower types: 'no', 'brief', 'async', 'ai'
 - Maintain consistent sprite naming in assets/sprites directory
 
 ### Error Handling
@@ -33,6 +33,8 @@ open -a "Google Chrome" index.html --args --auto-open-devtools-for-tabs
 - Provide fallbacks for loading failures (e.g., placeholder sprites)
 
 ### Project Structure
-- Keep main game logic in career-quest.js
+- The game is the tower defense at the repo root: data in js/config.js, rules in js/sim.js (no DOM), drawing in js/render.js, input and UI in js/main.js
+- Plain script tags, no ES modules and no build step, so `open index.html` keeps working
+- The original 2025 shooter lives in classic/ and is not maintained
 - Store assets in appropriate subdirectories (sprites, backgrounds, audio)
 - Implementation notes and specifications in documents/
