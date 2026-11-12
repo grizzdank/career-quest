@@ -70,13 +70,13 @@ export class AssetLoader {
             this.game.debugInfo.errors.push(`${name} sprite load failed: ${img.src}`);
             
             // Try with a different path as fallback
-            if (img.src.includes('assets/sprites/jiraMonster.png')) {
+            if (img.src.includes('../assets/sprites/jiraMonster.png')) {
               console.log('Trying with assets/jiraMonster.png...');
-              img.src = 'assets/jiraMonster.png';
-            } else if (img.src.includes('assets/jiraMonster.png')) {
+              img.src = '../assets/jiraMonster.png';
+            } else if (img.src.includes('../assets/jiraMonster.png')) {
               console.log('Trying with assets/@jiraMonster.png...');
-              img.src = 'assets/@jiraMonster.png';
-            } else if (img.src.includes('assets/@jiraMonster.png')) {
+              img.src = '../assets/@jiraMonster.png';
+            } else if (img.src.includes('../assets/@jiraMonster.png')) {
               console.log('Trying with root path...');
               img.src = 'jiraMonster.png';
             } else {
@@ -89,7 +89,7 @@ export class AssetLoader {
           
           // First attempt - try the correct path
           console.log(`Attempting to load ${name} sprite from:`, `assets/sprites/jiraMonster.png`);
-          img.src = `assets/sprites/jiraMonster.png`;
+          img.src = `../assets/sprites/jiraMonster.png`;
         } else {
           // For other sprites, we'll use placeholder colored rectangles
           this.createPlaceholderSprite(name);
@@ -173,7 +173,7 @@ export class AssetLoader {
     console.log('Starting backgrounds load...');
     
     // Only load title background, playing state will use parallax layers
-    await this.loadBackground('title', 'assets/backgrounds/title-bg.png', 'title-bg.png');
+    await this.loadBackground('title', '../assets/backgrounds/title-bg.png', 'title-bg.png');
   }
   
   async loadBackground(state, primaryPath, fallbackPath) {
@@ -225,9 +225,9 @@ export class AssetLoader {
     console.log('Loading parallax background layers...');
     
     const layers = [
-      { name: 'background', path: 'assets/backgrounds/background.png' },
-      { name: 'midground', path: 'assets/backgrounds/midground.png' },
-      { name: 'foreground', path: 'assets/backgrounds/foreground.png' }
+      { name: 'background', path: '../assets/backgrounds/background.png' },
+      { name: 'midground', path: '../assets/backgrounds/midground.png' },
+      { name: 'foreground', path: '../assets/backgrounds/foreground.png' }
     ];
     
     await Promise.all(layers.map(layer => this.loadParallaxLayer(layer.name, layer.path)));
@@ -308,7 +308,7 @@ export class AssetLoader {
       };
       
       console.log('Attempting to load soundtrack from:', 'audio/soundtrack.mp3');
-      audio.src = 'audio/soundtrack.mp3';
+      audio.src = '../audio/soundtrack.mp3';
     });
   }
   

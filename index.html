@@ -2,26 +2,70 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Career Quest - The Job Hunt</title>
-  <style>
-    body {
-      margin: 0;
-      padding: 0;
-      overflow: hidden;
-      background-color: #222;
-    }
-    canvas {
-      display: block;
-      width: 100%;
-      height: 100vh;
-    }
-  </style>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
+  <meta name="description" content="Career Quest: a small tower-defense game about defending a project deadline from scope creep, quick syncs and one more round of feedback.">
+  <title>Career Quest - Defend the Deadline</title>
+  <link rel="stylesheet" href="css/game.css">
 </head>
 <body>
-  <canvas id="gameCanvas"></canvas>
-  
-  <!-- Load the main script as a module -->
-  <script type="module" src="js/main.js"></script>
+  <main class="game">
+    <div class="game__stage" id="stage">
+      <canvas class="game__canvas" id="gameCanvas"></canvas>
+
+      <div class="hud">
+        <div class="hud__stat hud__stat--buffer">Buffer <b id="hudBuffer">10</b> days</div>
+        <div class="hud__stat hud__stat--focus">Focus <b id="hudFocus">0</b></div>
+        <div class="hud__wave" id="hudWave"></div>
+      </div>
+
+      <div class="info" id="info"></div>
+
+      <div class="popover" id="popover" hidden>
+        <button class="popover__button" id="sellButton" type="button">Sell</button>
+      </div>
+
+      <div class="bar">
+        <div class="bar__towers" id="towerButtons"></div>
+        <button class="bar__button bar__button--start" id="startWaveButton" type="button">Start wave 1</button>
+        <button class="bar__button" id="speedButton" type="button" aria-label="Game speed">1x</button>
+        <button class="bar__button" id="muteButton" type="button" aria-label="Toggle music">Music on</button>
+      </div>
+
+      <section class="screen screen--title" id="titleScreen">
+        <div class="screen__panel">
+          <h1 class="screen__title">Defend the Deadline</h1>
+          <p class="screen__lead">A tower defense about shipping on time.</p>
+          <ul class="screen__steps">
+            <li>Work walks the timeline toward launch day. Each thing that gets through costs you buffer.</li>
+            <li>Pick a tower below the map, then tap a <b>+</b> spot to place it. Tap a tower to sell it.</li>
+            <li>The AI Assistant is the strongest tower. Put it next to a Clear Brief.</li>
+          </ul>
+          <button class="screen__button" id="playButton" type="button">Start project</button>
+          <a class="screen__small-link" href="classic/">or play the original 2025 shooter</a>
+        </div>
+      </section>
+
+      <section class="screen screen--end" id="endScreen" hidden>
+        <div class="screen__panel screen__panel--wide">
+          <h1 class="screen__title" id="endTitle"></h1>
+          <p class="screen__lead" id="endSummary"></p>
+          <p class="screen__note" id="endAiLine"></p>
+          <h2 class="links__heading">Things I have actually built</h2>
+          <div class="links" id="links"></div>
+          <div class="screen__footer">
+            <button class="screen__button" id="replayButton" type="button">Play again</button>
+            <p class="screen__credit">This game was built with AI assistance. Music made with Suno.
+              <a href="classic/">Original shooter</a></p>
+          </div>
+        </div>
+      </section>
+    </div>
+    <div class="rotate-hint">Turn your phone sideways to play.</div>
+  </main>
+
+  <script src="js/config.js"></script>
+  <script src="js/sim.js"></script>
+  <script src="js/render.js"></script>
+  <script src="js/main.js"></script>
 </body>
 </html>
