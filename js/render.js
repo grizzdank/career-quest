@@ -481,8 +481,8 @@
           ctx.fillRect(12 - i * 4, -38 + i * 20, 20, 17);
         }
         ctx.setTransform(this.pixelScale, 0, 0, this.pixelScale, 0, 0);
-        drawLabel(ctx, enemy.def.phases[enemy.phase], x, y + 42, 10, '#ffd166');
-        top = y - 44;
+        drawLabel(ctx, enemy.def.phases[enemy.phase], x, y - 57, 10, '#ffd166');
+        top = y - 48;
         barWidth = 56;
       }
 

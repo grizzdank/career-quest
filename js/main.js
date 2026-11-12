@@ -182,6 +182,7 @@
       this.message = null;
       this.elements.titleScreen.hidden = true;
       this.elements.endScreen.hidden = true;
+      this.updateHud(); // re-enable the wave button now, not a frame later
       this.playMusic(); // inside the tap handler, so browsers allow audio to start
     }
 

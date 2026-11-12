@@ -53,7 +53,7 @@
       range: 120,
       slow: 0.4,
       color: '#ffe9a8',
-      blurb: 'Slows work nearby, stops scope creep growing, and keeps a neighbouring AI on target.'
+      blurb: 'Slows work nearby, stops scope creep growing, keeps a neighbouring AI on target.'
     },
     async: {
       name: 'Async Update',
@@ -75,7 +75,7 @@
       misfireBriefed: 0.03,
       glitchTime: 1.0,
       color: '#ff9d3c',
-      blurb: 'Hits hardest and furthest. Confidently wrong 30% of the time, unless it sits next to a Clear Brief.'
+      blurb: 'Hits hardest and furthest. Often confidently wrong, unless it sits next to a Clear Brief.'
     }
   };
 
