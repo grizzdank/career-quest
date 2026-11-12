@@ -62,7 +62,7 @@ button {
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 0 14px;
+  padding: 0 122px 0 14px;
   background: rgba(15, 14, 42, 0.82);
   border-bottom: 2px solid #4a47a3;
   font-size: 17px;
@@ -97,6 +97,20 @@ button {
   font-weight: bold;
   color: #c9c6ff;
   white-space: nowrap;
+}
+
+/* Opens the enemy legend. Taller than the status line so it stays tappable on a phone. */
+.game__legend-button {
+  position: absolute;
+  top: 4px;
+  right: 8px;
+  width: 106px;
+  height: 64px;
+  border: 2px solid #7f7be0;
+  border-radius: 10px;
+  background: #23215c;
+  font-size: 14px;
+  font-weight: bold;
 }
 
 /* One line of context just above the build bar */
@@ -245,7 +259,8 @@ button {
   background: #19174a url("../assets/backgrounds/office-small.jpg") center 28% / cover no-repeat;
 }
 
-.screen--end {
+.screen--end,
+.screen--legend {
   align-items: center;
 }
 
@@ -280,7 +295,7 @@ button {
 }
 
 .screen__steps {
-  margin: 10px 0 12px;
+  margin: 10px 0 14px;
   padding-left: 22px;
   text-align: left;
   font-size: 14.5px;
@@ -299,12 +314,57 @@ button {
   font-weight: bold;
 }
 
-.screen__small-link {
+.screen__button--secondary {
+  min-width: 0;
+  margin-left: 10px;
+  border: 2px solid #7f7be0;
+  background: #23215c;
+  color: #f1f0ff;
+  font-size: 16px;
+}
+
+/* Enemy legend */
+.legend {
+  margin: 10px 0 12px;
+  text-align: left;
+}
+
+.legend__row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 4px 10px;
+  border-radius: 8px;
+}
+
+.legend__row--active {
+  background: #2b2970;
+}
+
+.legend__icon {
+  width: 52px;
+  height: 52px;
+  flex: none;
+}
+
+.legend__name {
+  width: 250px;
+  flex: none;
+  font-size: 16px;
+  font-weight: bold;
+  color: #ffd166;
+}
+
+.legend__tag {
   display: block;
-  margin-top: 8px;
-  padding: 6px;
-  font-size: 13px;
-  color: #c9c6ff;
+  font-size: 12px;
+  font-weight: normal;
+  color: #8ce99a;
+}
+
+.legend__text {
+  font-size: 14px;
+  line-height: 1.35;
 }
 
 .screen__footer {
@@ -319,10 +379,6 @@ button {
   margin: 0;
   font-size: 13px;
   color: #c9c6ff;
-}
-
-.screen__credit a {
-  color: #ffd166;
 }
 
 .links__heading {

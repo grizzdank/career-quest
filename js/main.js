@@ -10,7 +10,8 @@
       this.elements = {};
       for (const id of ['hudBuffer', 'hudFocus', 'hudWave', 'info', 'popover', 'sellButton', 'towerButtons',
         'startWaveButton', 'speedButton', 'muteButton', 'titleScreen', 'endScreen', 'endTitle', 'endSummary',
-        'endAiLine', 'links', 'playButton', 'replayButton']) {
+        'endAiLine', 'links', 'playButton', 'replayButton', 'legendButton', 'legendScreen', 'legend',
+        'legendCloseButton', 'titleLegendButton']) {
         this.elements[id] = document.getElementById(id);
       }
 
@@ -19,6 +20,8 @@
       this.game = new CQ.Game();
       this.ui = { selectedType: null, selectedSlot: null, hoverSlot: null };
       this.playing = false;
+      this.legendOpen = false;
+      this.legendRows = [];
       this.speedIndex = 0;
       this.message = null;
       this.lastFrame = 0;
@@ -32,6 +35,7 @@
       this.loadImage('ticket', 'assets/sprites/jiraMonster.png');
       this.createTowerButtons();
       this.createLinks();
+      this.createLegend();
       this.bindEvents();
       this.resizeStage();
       this.updateMuteButton();
@@ -109,6 +113,72 @@
       }
     }
 
+    createLegend() {
+      for (const type of CQ.LEGEND_ORDER) {
+        const def = CQ.ENEMIES[type];
+        const row = document.createElement('div');
+        row.className = 'legend__row';
+
+        const icon = document.createElement('canvas');
+        icon.className = 'legend__icon';
+        icon.width = 156;
+        icon.height = 156;
+
+        const name = document.createElement('span');
+        name.className = 'legend__name';
+        name.textContent = def.name;
+        const tag = document.createElement('span');
+        tag.className = 'legend__tag';
+        name.append(tag);
+
+        const text = document.createElement('span');
+        text.className = 'legend__text';
+        text.textContent = def.legend;
+
+        row.append(icon, name, text);
+        this.elements.legend.append(row);
+        this.legendRows.push({ type, row, icon, tag });
+      }
+    }
+
+    // Icons reuse the in-game enemy art, so the legend always matches what is on the map.
+    drawLegendIcons() {
+      for (const entry of this.legendRows) {
+        const def = CQ.ENEMIES[entry.type];
+        const size = entry.type === 'boss' ? 84 : 48; // stage pixels shown in the icon
+        const painter = new CQ.Renderer(entry.icon, this.images);
+        painter.pixelScale = entry.icon.width / size;
+        painter.ctx.setTransform(1, 0, 0, 1, 0, 0);
+        painter.ctx.clearRect(0, 0, entry.icon.width, entry.icon.height);
+        painter.ctx.setTransform(painter.pixelScale, 0, 0, painter.pixelScale, 0, 0);
+        painter.drawEnemy({ time: 0 }, {
+          type: entry.type, def, x: size / 2, y: size / 2 + (entry.type === 'boss' ? 4 : 0), dist: 0,
+          hp: 1, maxHp: 1, timer: (def.pulseEvery || 0) * 0.25, phase: 2, shield: 0,
+          briefed: false, revived: false, isIcon: true, getGrowth: () => 1.8
+        });
+      }
+    }
+
+    openLegend() {
+      const game = this.game;
+      const inWave = game.state === 'wave';
+      const wave = this.playing ? CQ.WAVES[inWave ? game.waveIndex : game.waveIndex + 1] : null;
+      const types = wave ? wave.groups.map(group => group.type) : [];
+      for (const entry of this.legendRows) {
+        const active = types.includes(entry.type);
+        entry.row.classList.toggle('legend__row--active', active);
+        entry.tag.textContent = active ? (inWave ? 'in this wave' : 'in the next wave') : '';
+      }
+      this.drawLegendIcons();
+      this.legendOpen = true; // the game is paused while the legend is open
+      this.elements.legendScreen.hidden = false;
+    }
+
+    closeLegend() {
+      this.legendOpen = false;
+      this.elements.legendScreen.hidden = true;
+    }
+
     bindEvents() {
       const el = this.elements;
       window.addEventListener('resize', () => this.resizeStage());
@@ -128,6 +198,9 @@
         el.speedButton.textContent = SPEEDS[this.speedIndex] + 'x';
       });
       el.muteButton.addEventListener('click', () => this.toggleMute());
+      el.legendButton.addEventListener('click', () => this.openLegend());
+      el.titleLegendButton.addEventListener('click', () => this.openLegend());
+      el.legendCloseButton.addEventListener('click', () => this.closeLegend());
     }
 
     resizeStage() {
@@ -236,7 +309,7 @@
     }
 
     handlePointerDown(event) {
-      if (!this.playing) return;
+      if (!this.playing || this.legendOpen) return;
       event.preventDefault();
       const slotIndex = this.findSlotAt(this.getStagePoint(event));
       if (slotIndex === null) {
@@ -349,7 +422,7 @@
       // Slow frames still advance real time: the simulation uses a fixed step, so this is safe.
       const dt = this.lastFrame ? Math.min(0.4, (time - this.lastFrame) / 1000) : 0;
       this.lastFrame = time;
-      if (this.playing) {
+      if (this.playing && !this.legendOpen) {
         this.game.advance(dt * SPEEDS[this.speedIndex]);
         if (this.game.state === 'won' || this.game.state === 'lost') this.endGame();
       }

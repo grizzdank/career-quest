@@ -69,6 +69,12 @@
       this.shield = 0;
       this.slow = 1;
       this.briefed = false;
+      // The first enemy of each type carries a name tag for a few seconds.
+      this.tagTime = 0;
+      if (!game.seenTypes.has(type)) {
+        game.seenTypes.add(type);
+        this.tagTime = 6;
+      }
       this.movePosition();
     }
 
@@ -85,6 +91,7 @@
     update(dt) {
       const def = this.def;
       if (this.shield > 0) this.shield -= dt;
+      if (this.tagTime > 0) this.tagTime -= dt;
 
       if (def.growRate && !this.briefed && this.getGrowth() < def.growMax) {
         const gain = this.baseHp * def.growRate * dt;
@@ -227,6 +234,7 @@
       this.projectiles = [];
       this.corpses = [];
       this.effects = [];
+      this.seenTypes = new Set();
       this.stats = { shipped: 0, misfires: 0, reopened: 0, towersBuilt: 0 };
     }
 

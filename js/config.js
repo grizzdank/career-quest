@@ -85,18 +85,21 @@
       hp: 34, speed: 50, bounty: 8, leak: 1, radius: 11,
       growRate: 0.07, // share of base hp gained per second while un-briefed
       growMax: 3.5,
-      leavesCorpse: true
+      leavesCorpse: true,
+      legend: 'Grows the longer it lives. Stop it early, or park a Clear Brief nearby to halt the growth.'
     },
     sync: {
       name: 'Quick Sync',
       hp: 48, speed: 56, bounty: 10, leak: 1, radius: 14,
       pulseEvery: 4.5, pulseRange: 105, freezeTime: 1.8,
-      leavesCorpse: true
+      leavesCorpse: true,
+      legend: 'Freezes towers near it every few seconds. An Async Update dissolves it fast.'
     },
     ticket: {
       name: 'Ticket',
       hp: 34, speed: 64, bounty: 5, leak: 1, radius: 14,
-      splitsInto: 'subticket'
+      splitsInto: 'subticket',
+      legend: 'Close it and it splits into two small, fast sub-tasks.'
     },
     subticket: {
       name: 'Sub-task',
@@ -108,16 +111,21 @@
       // that will not die), not a person. Change the display name here if you prefer.
       name: 'Zombie Thread',
       hp: 120, speed: 38, bounty: 18, leak: 2, radius: 16,
-      reviveEvery: 3.2, reviveRange: 170, reviveHp: 0.6
+      reviveEvery: 3.2, reviveRange: 170, reviveHp: 0.6,
+      legend: 'Slow and tough. Reopens things you already shipped, so deal with it first.'
     },
     boss: {
       name: 'One More Round of Feedback',
       hp: 280, speed: 30, bounty: 0, leak: 6, radius: 30,
       phases: ['feedback_v1', 'feedback_v2_final', 'feedback_FINAL_final_v3'],
       phaseSpeedUp: 1.15,
-      phaseShield: 1.2
+      phaseShield: 1.2,
+      legend: 'The final boss. Beat it three times: v1, v2_final, then FINAL_final_v3.'
     }
   };
+
+  // Order of the in-game enemy legend (sub-tasks are covered by the Ticket entry).
+  CQ.LEGEND_ORDER = ['creep', 'sync', 'ticket', 'zombie', 'boss'];
 
   // Each wave: hp multiplier plus spawn groups (type, count, seconds between, start delay).
   CQ.WAVES = [
@@ -179,7 +187,7 @@
   CQ.LINKS = [
     {
       title: 'Shoal',
-      text: 'Governance and admin layer for AI agents: policies, approvals and audit.',
+      text: 'Governance and admin layer for OpenClaw agents: policies, approvals and audit (proof of concept).',
       url: 'https://github.com/grizzdank/shoal'
     },
     {

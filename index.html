@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
   <meta name="description" content="Career Quest: a small tower-defense game about defending a project deadline from scope creep, quick syncs and one more round of feedback.">
   <title>Career Quest - Defend the Deadline</title>
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 32 32%27%3E%3Crect width=%2732%27 height=%2732%27 rx=%276%27 fill=%27%23ffd166%27/%3E%3Crect width=%2732%27 height=%2710%27 rx=%276%27 fill=%27%23e5484d%27/%3E%3Cpath d=%27M16 13l2.5 5.2 5.5.6-4.1 3.8 1.2 5.4-5.1-2.9-5.1 2.9 1.2-5.4-4.1-3.8 5.5-.6z%27 fill=%27%2317163f%27/%3E%3C/svg%3E">
@@ -18,6 +18,8 @@
         <div class="hud__stat hud__stat--focus">Focus <b id="hudFocus">0</b></div>
         <div class="hud__wave" id="hudWave"></div>
       </div>
+
+      <button class="game__legend-button" id="legendButton" type="button">Enemies ?</button>
 
       <div class="info" id="info"></div>
 
@@ -42,7 +44,7 @@
             <li>The AI Assistant is the strongest tower. Put it next to a Clear Brief.</li>
           </ul>
           <button class="screen__button" id="playButton" type="button">Start project</button>
-          <a class="screen__small-link" href="classic/">or play the original 2025 shooter</a>
+          <button class="screen__button screen__button--secondary" id="titleLegendButton" type="button">Meet the enemies</button>
         </div>
       </section>
 
@@ -55,9 +57,16 @@
           <div class="links" id="links"></div>
           <div class="screen__footer">
             <button class="screen__button" id="replayButton" type="button">Play again</button>
-            <p class="screen__credit">This game was built with AI assistance. Music made with Suno.
-              <a href="classic/">Original shooter</a></p>
+            <p class="screen__credit">This game was built with AI assistance. Music made with Suno.</p>
           </div>
+        </div>
+      </section>
+
+      <section class="screen screen--legend" id="legendScreen" hidden>
+        <div class="screen__panel screen__panel--wide">
+          <h1 class="screen__title">What you are up against</h1>
+          <div class="legend" id="legend"></div>
+          <button class="screen__button" id="legendCloseButton" type="button">Got it</button>
         </div>
       </section>
     </div>

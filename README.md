@@ -14,6 +14,8 @@ Vanilla JavaScript on an HTML canvas. No dependencies and no build step. Built w
 - Click or tap a placed tower to sell it for 60% of its cost.
 - Press **Start wave** when you are ready. There are five waves; the last one is the boss.
 - Each thing that reaches launch day costs buffer days. At zero, the launch slips.
+- **Enemies ?** (top right, or "Meet the enemies" on the title screen) opens a legend of every enemy. The game pauses while it is open.
+- The first enemy of each type carries a name tag for a few seconds.
 - The speed button cycles 1x, 2x, 3x. The music button mutes the soundtrack.
 
 Works with mouse and touch, on a laptop or a phone held sideways.
@@ -63,7 +65,7 @@ js/sim.js             Game rules. No DOM, so it also runs under node
 js/render.js          Canvas drawing
 js/main.js            Input, HUD, screens, music
 assets/, audio/       Backgrounds, the ticket sprite and the soundtrack
-classic/              The original 2025 side-scrolling shooter, still playable at /classic/
+classic/              The original 2025 side-scrolling shooter (keyboard only), at classic/index.html
 documents/            Notes for the original shooter concept
 ```
 

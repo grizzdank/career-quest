@@ -481,12 +481,13 @@
           ctx.fillRect(12 - i * 4, -38 + i * 20, 20, 17);
         }
         ctx.setTransform(this.pixelScale, 0, 0, this.pixelScale, 0, 0);
-        drawLabel(ctx, enemy.def.phases[enemy.phase], x, y - 57, 10, '#ffd166');
+        if (!enemy.isIcon) drawLabel(ctx, enemy.def.phases[enemy.phase], x, y - 57, 10, '#ffd166');
         top = y - 48;
         barWidth = 56;
       }
 
       ctx.restore();
+      if (enemy.isIcon) return; // legend icons: art only, no bars or tags
       if (enemy.revived) {
         ctx.strokeStyle = '#8fe08a';
         ctx.lineWidth = 1.5;
@@ -497,6 +498,11 @@
         ctx.setLineDash([]);
       }
       if (enemy.hp < enemy.maxHp || enemy.type === 'boss') this.drawHealthBar(enemy, top, barWidth);
+      if (enemy.tagTime > 0 && enemy.type !== 'boss') {
+        ctx.globalAlpha = Math.min(1, enemy.tagTime);
+        drawLabel(ctx, enemy.def.name, x, top - 9, 11, '#ffffff');
+        ctx.globalAlpha = 1;
+      }
     }
 
     drawProjectile(p) {
